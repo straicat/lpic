@@ -2,7 +2,7 @@
 
 Linux下的七牛云图床神器，简单方便好用！
 
-![](http://p9h7r5xkw.bkt.clouddn.com/20180529_221201.gif)
+![](https://github.com/jlice/cli-tools/raw/master/assets/lpic.gif)
 
 ## 用法
 
@@ -36,3 +36,10 @@ $ curl -L https://github.com/jlice/cli-tools/raw/master/lpic/install | bash
 $ sudo apt-get install xsel
 ```
 
+记得要先编辑 $HOME/.local/lpic/lpic.rc 进行配置哦！
+
+配置项中的URL_Prefix也就是Bucket（存储空间）绑定的域名。
+
+---
+
+小工具，方便使用，不准备开发过多功能。
