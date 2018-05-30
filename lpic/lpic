@@ -27,7 +27,7 @@ preprocess() {
     # 对图像进行压缩、重命名
     mkdir -p $TMP_DIR
     case $suffix in
-    jpg|png|bmp)
+    jpg|jpeg|png|bmp)
         tmp_file=${TMP_DIR%/}/$datetime".jpg"
         convert -strip -quality $QUALITY $file $tmp_file
     ;;
