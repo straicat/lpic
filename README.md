@@ -29,7 +29,7 @@ Linux下的终端图床神器！
 
 ## 安装
 
-安装SDK：
+安装依赖：
 
 ``` Shell
 $ pip3 install -r requirements.txt
