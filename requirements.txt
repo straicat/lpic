@@ -1,0 +1,2 @@
+qiniu
+cos-python-sdk-v5
