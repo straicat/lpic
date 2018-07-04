@@ -29,19 +29,19 @@ Linux下的终端图床神器！
 
 ## 安装
 
-安装依赖：
-
-``` Shell
-$ pip3 install -r requirements.txt
-```
-
 下载该项目：
 
 ``` Shell
 $ git clone https://github.com/jlice/lpic.git
 ```
 
-将`lpic.yml.example`复制一份为`lpic.yml`，此为配置文件，修改之。
+安装依赖：
+
+``` Shell
+$ pip3 install -r lpic/requirements.txt
+```
+
+将`lpic.yml.example`复制一份为`lpic.yml`，此为配置文件，修改之：
 
 ``` Shell
 $ cd lpic/lpic
