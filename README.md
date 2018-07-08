@@ -44,7 +44,7 @@ $ pip3 install -r lpic/requirements.txt
 将`lpic.yml.example`复制一份为`lpic.yml`，此为配置文件，修改之：
 
 ``` Shell
-$ cd lpic/lpic
+$ cd lpic/src
 $ cp lpic.yml.example lpic.yml
 $ vim lpic.yml
 ```
