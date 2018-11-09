@@ -55,3 +55,11 @@ $ vim lpic.yml
 $ chmod +x main.py
 $ sudo ln -s $PWD/main.py /usr/local/bin/lpic
 ```
+
+## 变更日志
+
+### 2018.11.09
+
+  1. 增加Windows支持
+  2. 修复了转换带Alpha通道PNG的BUG
+  3. 优化配置文件结构（兼容之前的格式）

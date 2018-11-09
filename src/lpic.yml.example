@@ -9,24 +9,21 @@ tencent:
   SecretKey: your_secret_key
   Region: ap-beijing
   Bucket: img-123456
-  # 是否自动压缩图片
-  AutoCompress: true
-  # 临时文件目录
-  TmpDir: /tmp/lpic
   # 图片外链前缀
   UrlPrefix: https://img-123456.cos.ap-beijing.myqcloud.com/
-  # 自动复制外链到剪贴板
-  AutoCopy: true
-  # 使用Markdown格式图片链接
-  MarkdownFormat: true
 
 # 七牛云
 qiniu:
   AccessKey: your_access_key
   SecretKey: your_secret_key
   Bucket: img
-  AutoCompress: true
   TmpDir: /tmp/lpic
   UrlPrefix: http://abcde.bkt.clouddn.com/
+
+conf:
+  # 是否自动压缩图片
+  AutoCompress: true
+  # 自动复制外链到剪贴板
   AutoCopy: true
+  # 使用Markdown格式图片链接
   MarkdownFormat: true

@@ -12,10 +12,11 @@ from kodo import QiniuLPic
 
 def _main():
     lp = LPic()
-    if lp.use == 'tencent':
-        TencentLPic().main()
-    elif lp.use == 'qiniu':
-        QiniuLPic().main()
+    if hasattr(lp, 'use'):
+        if lp.use == 'tencent':
+            TencentLPic().main()
+        elif lp.use == 'qiniu':
+            QiniuLPic().main()
 
 
 if __name__ == '__main__':
