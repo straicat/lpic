@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime
 import os
 
 from qcloud_cos import CosConfig, CosS3Client
@@ -28,11 +27,10 @@ class TencentLPic(LPic):
             Key=os.path.basename(file)
         )
 
-    def delete(self):
-        prefix = datetime.datetime.now().strftime("%Y%m%d")
+    def delete(self, name):
         response = self.client.list_objects(
             Bucket=self.cloud['Bucket'],
-            Prefix=prefix,
+            Prefix=name,
             MaxKeys=100
         )
         if 'Contents' in response:
@@ -40,8 +38,8 @@ class TencentLPic(LPic):
             if input('删除 %s ?([y]/n) ' % files[0]) in ['y', 'Y', '']:
                 self.client.delete_object(
                     Bucket=self.cloud['Bucket'],
-                    Key=files[0]
+                    Key=name
                 )
                 print('已删除：%s' % files[0])
         else:
-            print("存储库里没有以%s开头的文件" % prefix)
+            print("存储库里没有以%s开头的文件" % name)

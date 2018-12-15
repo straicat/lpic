@@ -21,14 +21,13 @@ class QiniuLPic(LPic):
         _token = self.client.upload_token(self.cloud['Bucket'], os.path.basename(file), 600)
         put_file(_token, os.path.basename(file), file)
 
-    def delete(self):
-        prefix = datetime.datetime.now().strftime("%Y%m%d")
+    def delete(self, name):
         bucket = BucketManager(self.client)
-        ret, _, _ = bucket.list(self.cloud['Bucket'], prefix=prefix, limit=100)
+        ret, _, _ = bucket.list(self.cloud['Bucket'], prefix=name, limit=100)
         files = sorted([content['key'] for content in ret['items']], reverse=True)
         if files:
             if input('删除 %s ?([y]/n) ' % files[0]) in ['y', 'Y', '']:
                 bucket.delete(self.cloud['Bucket'], files[0])
                 print('已删除：%s' % files[0])
         else:
-            print("存储库里没有以%s开头的文件" % prefix)
+            print("存储库里没有以%s开头的文件" % name)

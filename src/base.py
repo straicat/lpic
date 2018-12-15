@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import datetime
 import os
 import re
 import shutil
 import sys
 import tempfile
+import uuid
 import webbrowser
 from functools import cmp_to_key
 
@@ -19,12 +19,12 @@ class LPic:
 
 可用命令:
     help, -h, --help    显示帮助
-    del                 删除Bucket中最新的文件
+    del <filename>      删除Bucket中的文件
     web                 打开Bucket内容管理页面
     put <filename>      上传文件
     use [<option>]      切换云服务
 
-省略命令时，上传最新文件。"""
+省略命令时，上传最新图片。"""
 
     def __init__(self, conf=None):
         self.cloud_name = '云'
@@ -84,7 +84,7 @@ class LPic:
     def _preprocess(self, file):
         img = Image.open(file)
         suffix = os.path.splitext(os.path.abspath(file))[1].lower()
-        tmp_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        tmp_name = str(uuid.uuid1()).replace('-', '')
         new_file = os.path.join(self.tmp_dir, tmp_name)
         compressible = False
         if self.conf.get('AutoCompress'):
@@ -105,7 +105,7 @@ class LPic:
     def upload(self, file):
         raise NotImplementedError
 
-    def delete(self):
+    def delete(self, name):
         raise NotImplementedError
 
     def _upload_process(self, file):
@@ -145,7 +145,10 @@ class LPic:
             if command in ['help', '-h', '--help']:
                 print(LPic.__doc__)
             elif command == 'del':
-                self.delete()
+                if len(sys.argv) == 2:
+                    print('没有指定要删除的文件')
+                else:
+                    self.delete(sys.argv[2])
             elif command == 'web':
                 self.web()
             elif command == 'put':
