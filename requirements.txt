@@ -1,5 +1,6 @@
 pyperclip
 Pillow
 PyYAML
+oss2
 qiniu
 cos-python-sdk-v5

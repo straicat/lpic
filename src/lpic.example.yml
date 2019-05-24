@@ -1,0 +1,42 @@
+# 【注意】 :后要有空格
+# 选择使用的云存储
+# aliyun/tencent/qiniu
+use: aliyun
+
+# 阿里云
+aliyun: 
+  AccessKeyId: your_access_key_id
+  AccessKeySecret: your_access_key_secret
+  Region: oss-cn-beijing
+  Bucket: img
+  UrlPrefix: https://img.oss-cn-beijing.aliyuncs.com/
+
+# 腾讯云
+tencent: 
+  SecretId: your_secret_id
+  SecretKey: your_secret_key
+  Region: ap-beijing
+  Bucket: img-123456
+  UrlPrefix: https://img-123456.cos.ap-beijing.myqcloud.com/
+
+# 七牛云
+qiniu: 
+  AccessKey: your_access_key
+  SecretKey: your_secret_key
+  Bucket: img
+  UrlPrefix: http://abcde.bkt.clouddn.com/
+
+conf: 
+  # 是否自动压缩图片
+  AutoCompress: true
+  # 自动复制外链到剪贴板
+  AutoCopy: true
+  # 图片链接格式
+  LinkFormat: "![]($URL)"
+  # 限制图片尺寸
+  MaxSize: 1920x1080
+  # 图片重命名模式，默认：md5
+  # 支持: uuid, sha1, md5, datetime, hex-timestamp
+  NameMode: md5
+  # 填充图像的Alpha通道。true: 填充为白色；false: 不填充。或者填写颜色值。
+  FillAlpha: true

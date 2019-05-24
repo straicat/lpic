@@ -1,6 +1,13 @@
 __pycache__/
+*.pyc
 .idea/
-lpic.yml
+
+.DS_Store
+Thumbs.db
+
 venv/
 .python-version
+pipfile.lock
 
+lpic.yml
+.qiniu_pythonsdk_hostscache.json
