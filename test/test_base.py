@@ -1,6 +1,6 @@
 import os
 import unittest
-from datetime import date, datetime
+from datetime import datetime
 from time import sleep
 
 from PIL import Image
@@ -53,10 +53,9 @@ class LPicTestCase(unittest.TestCase):
 
     def test_replace_date_datetime(self):
         s = 'aa$DATE(%Y/%m/%d)$DATETIME(-%Y-%m-%d %H:%M:%S-)'
-        d = date(2020, 10, 20)
         dt = datetime(2020, 5, 10, 22, 23, 00)
-        self.assertEqual('foo', self.lpic.replace_date_datetime('foo', d, dt))
-        self.assertEqual('aa2020/10/20-2020-05-10 22:23:00-', self.lpic.replace_date_datetime(s, d, dt))
+        self.assertEqual('foo', self.lpic.replace_datetime('foo', dt))
+        self.assertEqual('aa2020/05/10-2020-05-10 22:23:00-', self.lpic.replace_datetime(s, dt))
 
     def test_generate_file_link(self):
         self.lpic.conf = {'MarkdownFormat': True, 'UrlPrefix': 'https://foo.org/'}

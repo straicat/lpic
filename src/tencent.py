@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 import os
 from datetime import datetime
 from urllib.parse import urlencode
@@ -31,11 +32,11 @@ class TencentLPic(LPic):
         }
         return 'https://console.cloud.tencent.com/cos5/bucket/setting?{}'.format(urlencode(params))
 
-    def upload(self, file):
+    def upload(self, file, prefix=''):
         ret = self.client.put_object_from_local_file(
             Bucket=self.cloud['Bucket'],
             LocalFilePath=file,
-            Key=os.path.basename(file)
+            Key=prefix + os.path.basename(file)
         )
         return bool(ret.get('ETag'))
 
@@ -54,6 +55,9 @@ class TencentLPic(LPic):
             return []
 
     def delete(self, key):
+        root = logging.getLogger()
+        pre_level = root.getEffectiveLevel()
+        root.setLevel(logging.WARNING)
         ret = self.client.delete_objects(
             Bucket=self.cloud['Bucket'],
             Delete={
@@ -61,6 +65,7 @@ class TencentLPic(LPic):
                 'Quiet': 'false'
             }
         )
+        root.setLevel(pre_level)
         return 'Deleted' in ret and len(ret['Deleted']) == 1
 
     def close(self):

@@ -24,6 +24,9 @@ class TencentLPicTestCase(unittest.TestCase):
         for i in range(2):
             os.remove(self.tmp.format(i))
 
+    def test_playground(self):
+        pass
+
     def test(self):
         t = 'tmp'
         ret = self.lpic.list(t)

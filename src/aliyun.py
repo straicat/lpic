@@ -20,8 +20,8 @@ class AliyunLPic(LPic):
     def web_url(self):
         return 'https://oss.console.aliyun.com/bucket/{}/{}/object'.format(self.cloud['Region'], self.cloud['Bucket'])
 
-    def upload(self, file):
-        ret = self.client.put_object_from_file(os.path.basename(file), file)
+    def upload(self, file, prefix=''):
+        ret = self.client.put_object_from_file(prefix + os.path.basename(file), file)
         return 200 <= ret.status < 300
 
     def list(self, prefix):

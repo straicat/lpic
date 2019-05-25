@@ -28,6 +28,9 @@ class QiniuLPicTestCase(unittest.TestCase):
         if os.path.isfile(cache):
             os.remove(cache)
 
+    def test_playground(self):
+        pass
+
     def test(self):
         t = 'tmp'
         ret = self.lpic.list(t)

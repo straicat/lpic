@@ -35,8 +35,8 @@ conf:
   LinkFormat: "![]($URL)"
   # 限制图片尺寸
   MaxSize: 1920x1080
-  # 图片重命名模式，默认：md5
-  # 支持: uuid, sha1, md5, datetime, hex-timestamp
-  NameMode: md5
+  # 图片重命名模式，默认：uuid
+  # 支持: uuid, sha1, md5, sha256, datetime, hex-timestamp
+  NameMode: uuid
   # 填充图像的Alpha通道。true: 填充为白色；false: 不填充。或者填写颜色值。
   FillAlpha: true

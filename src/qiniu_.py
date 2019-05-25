@@ -17,11 +17,11 @@ class QiniuLPic(LPic):
 
     @property
     def web_url(self):
-        return 'https://portal.qiniu.com/bucket/%s/resource' % self.cloud['Bucket']
+        return 'https://portal.qiniu.com/bucket/{}/resource'.format(self.cloud['Bucket'])
 
-    def upload(self, file):
+    def upload(self, file, prefix=''):
         _token = self.client.upload_token(self.cloud['Bucket'], os.path.basename(file), 600)
-        _, ret = put_file(_token, os.path.basename(file), file)
+        _, ret = put_file(_token, prefix + os.path.basename(file), file)
         return ret.ok()
 
     def list(self, prefix):
