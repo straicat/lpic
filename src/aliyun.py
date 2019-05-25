@@ -3,12 +3,12 @@
 import os
 import oss2
 
-from base import LPic
+from lpic import LPic
 
 
 class AliyunLPic(LPic):
-    def __init__(self, conf=None):
-        super().__init__(conf)
+    def __init__(self, conf=None, **option):
+        super(AliyunLPic, self).__init__(conf, **option)
         self.cloud_name = '阿里云'
 
     def auth(self):

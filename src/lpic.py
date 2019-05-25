@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import argparse
 import hashlib
 import logging
 import os
@@ -10,11 +9,13 @@ import traceback
 import uuid
 import webbrowser
 from datetime import datetime
+from functools import wraps
 from urllib.parse import quote, urlparse
 
 import pyperclip
 import yaml
 from PIL import Image
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class LPic:
     MAX_KEYS = 100
     ENCODINGS = ('utf-8', 'gb18030', 'gb2312', 'gbk', 'utf_8_sig')
 
-    def __init__(self, conf=None):
+    def __init__(self, conf=None, **option):
         self.cloud_name = '云'
         self.client = None
 
@@ -37,9 +38,10 @@ class LPic:
         self.cloud = {}
         self._tmp_dir = None
         self.tmp_dir = None
+        self.option = option
 
     def auth(self):
-        raise NotImplementedError
+        pass
 
     @property
     def web_url(self):
@@ -57,9 +59,9 @@ class LPic:
     def close(self):
         pass
 
-    def load_config(self, use=None):
+    def load_config(self):
         try:
-            self._conf.update(self.open_yaml(self.LPIC_EXAMPLE))
+            self._conf = self.open_yaml(self.LPIC_EXAMPLE)
         except FileNotFoundError:
             pass
         try:
@@ -68,11 +70,12 @@ class LPic:
             logger.error('找不到配置文件：{}'.format(self.conf_file))
             return False
 
-        self.use = use or self._conf['use']
+        self.use = self.option.get('use') or self._conf['use']
         if self.use not in self._conf:
             logger.error("不支持使用'{}'".format(self.use))
             return False
 
+        self.conf = {}
         if 'conf' in self._conf:
             self.conf.update(self._conf['conf'])
         self.conf.update(self._conf[self.use])
@@ -290,8 +293,8 @@ class LPic:
         if files:
             return max(files, key=lambda x: os.stat(x).st_mtime)
 
-    def upload_process(self, pic, adjust):
-        file = self.preprocess(pic, adjust)
+    def upload_process(self, pic):
+        file = self.preprocess(pic, self.option.get('adjust'))
         _, prefix = self.parse_url_prefix()
         ret = self.upload(file, prefix)
         if ret:
@@ -306,30 +309,38 @@ class LPic:
         else:
             logger.error('上传失败！')
 
-    @staticmethod
-    def set_logger():
-        root = logging.getLogger()
-        root.setLevel(logging.INFO)
-        sh = logging.StreamHandler()
-        sh.setLevel(logging.INFO)
-        root.addHandler(sh)
+    def ask_yn(self, prompt):
+        if self.option.get('yes'):
+            return True
+        while True:
+            ans = input(prompt).strip()
+            if not ans:
+                if '[y]' in prompt or '[Y]' in prompt:
+                    return True
+                if '[n]' in prompt or '[N]' in prompt:
+                    return False
+                logger.warning('请输入y或n')
+            else:
+                if ans in ('y', 'Y'):
+                    return True
+                if ans in ('n', 'N'):
+                    return False
+                logger.warning("输入无效：'{}'，请重新输入".format(ans))
 
-    def handle_default(self, args):
+    def handle_default(self, _):
         pic = self.get_default_pic()
         if pic:
-            args.cmd = 'put'
-            args.dest = pic
-            self.handle_put(args)
+            self.handle_put(pic)
         else:
             logger.error('当前目录没有图片文件')
 
-    def handle_use(self, args):
+    def handle_use(self, dest):
         clouds = sorted([c for c in self._conf if c != 'use' and c != 'conf'])
-        if args.dest is None:
+        if dest is None:
             for c in clouds:
                 logger.info('{} {}'.format('->' if c == self.use else '  ', c))
         else:
-            if args.dest in clouds:
+            if dest in clouds:
                 for ec in self.ENCODINGS:
                     try:
                         with open(self.conf_file, 'r', encoding=ec) as fp:
@@ -337,31 +348,28 @@ class LPic:
                         break
                     except UnicodeDecodeError:
                         pass
-                raw = re.sub(r'^use:\s+\S+', 'use: {}'.format(args.dest), raw, flags=re.M)
+                raw = re.sub(r'^use:\s+\S+', 'use: {}'.format(dest), raw, flags=re.M)
                 with open(self.conf_file, 'w', encoding='utf-8') as fp:
                     fp.write(raw)
             else:
-                logger.error("不支持使用'{}'".format(args.dest))
+                logger.error("不支持使用'{}'".format(dest))
 
-    def handle_put(self, args):
-        if args.dest:
-            pic = args.dest
-            if os.path.isfile(pic):
-                ans = input('上传 {} 至{}？([y]/n) '.format(pic, self.cloud_name))
-                if ans in ('y', 'Y', ''):
-                    self.upload_process(pic, args.no_adjust)
+    def handle_put(self, dest):
+        if dest:
+            if os.path.isfile(dest):
+                if self.ask_yn('上传 {} 至{}？([y]/n) '.format(dest, self.cloud_name)):
+                    self.upload_process(dest)
             else:
-                logger.error('当前目录没有指定的文件：{}'.format(pic))
+                logger.error('当前目录没有指定的文件：{}'.format(dest))
         else:
-            self.handle_default(args)
+            self.handle_default(dest)
 
-    def handle_del(self, args):
-        prefix = args.dest or ''
+    def handle_del(self, dest):
+        prefix = dest or ''
         keys = self.list(prefix)
         if keys:
             key = keys[0]
-            ans = input('从{}删除 {} ?([y]/n) '.format(self.cloud_name, key))
-            if ans in ('y', 'Y', ''):
+            if self.ask_yn('从{}删除 {} ?([y]/n) '.format(self.cloud_name, key)):
                 if self.delete(key):
                     logger.info('已从{}删除：{}'.format(self.cloud_name, key))
                 else:
@@ -373,32 +381,28 @@ class LPic:
         if self.web_url:
             webbrowser.open(self.web_url)
 
-    def main(self):
-        parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                         description='''终端图床神器！支持阿里云、腾讯云和七牛云。
-可用命令:
-    help                显示帮助
-    use [<cloud>]       查看/切换云服务
-    put [<filename>]    上传文件。默认上传当前目录最新修改的图片。
-    del [<prefix>]      删除Bucket中最新的指定前缀的文件
-    web                 打开Bucket内容管理网页
-省略命令时，上传当前目录最新修改的图片。''', epilog='''GitHub: https://github.com/jlice/lpic。欢迎start、提交PR。''')
-        parser.add_argument('cmd', nargs='?', help='命令。支持：help, use, put, del, web')
-        parser.add_argument('dest', nargs='?', help='')
-        parser.add_argument('-n', action='store_true', dest='no_adjust', help='不进行预处理')
-        args = parser.parse_args()
+    @staticmethod
+    def mute_log(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            root = logging.getLogger()
+            level = root.getEffectiveLevel()
+            root.setLevel(logging.ERROR)
+            ret = func(*args, **kwargs)
+            root.setLevel(level)
+            return ret
 
-        self.set_logger()
+        return wrapper
+
+    def main(self, cmd, dest):
         if self.load_config():
             self.auth()
-            if args.cmd is None:
-                self.handle_default(args)
-            elif args.cmd == 'help':
-                parser.print_help()
+            if cmd is None:
+                self.handle_default(dest)
             else:
-                if hasattr(self, 'handle_' + args.cmd):
-                    getattr(self, 'handle_' + args.cmd)(args)
+                if hasattr(self, 'handle_' + cmd):
+                    getattr(self, 'handle_' + cmd)(dest)
                 else:
-                    logger.error('不支持的命令：{}'.format(args.cmd))
+                    logger.error('不支持的命令：{}'.format(cmd))
 
         self.exit()

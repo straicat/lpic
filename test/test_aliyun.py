@@ -10,8 +10,8 @@ from aliyun import AliyunLPic
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
 class AliyunLPicTestCase(unittest.TestCase):
     def setUp(self):
-        self.lpic = AliyunLPic('lpic.yml')
-        self.lpic.load_config(use='aliyun')
+        self.lpic = AliyunLPic('lpic.yml', use='aliyun')
+        self.lpic.load_config()
         self.lpic.auth()
         self.tmp = 'tmp{}.jpg'
         for i in range(2):

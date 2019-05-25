@@ -10,8 +10,8 @@ from tencent import TencentLPic
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
 class TencentLPicTestCase(unittest.TestCase):
     def setUp(self):
-        self.lpic = TencentLPic('lpic.yml')
-        self.lpic.load_config(use='tencent')
+        self.lpic = TencentLPic('lpic.yml', use='tencent')
+        self.lpic.load_config()
         self.lpic.auth()
         self.tmp = 'tmp{}.jpg'
         for i in range(2):

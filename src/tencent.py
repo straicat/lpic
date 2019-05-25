@@ -8,12 +8,12 @@ from urllib.parse import urlencode
 # noinspection PyPackageRequirements
 from qcloud_cos import CosConfig, CosS3Client
 
-from base import LPic
+from lpic import LPic
 
 
 class TencentLPic(LPic):
-    def __init__(self, conf=None):
-        super().__init__(conf)
+    def __init__(self, conf=None, **option):
+        super(TencentLPic, self).__init__(conf, **option)
         self.cloud_name = '腾讯云'
 
     def auth(self):
@@ -32,6 +32,7 @@ class TencentLPic(LPic):
         }
         return 'https://console.cloud.tencent.com/cos5/bucket/setting?{}'.format(urlencode(params))
 
+    @LPic.mute_log
     def upload(self, file, prefix=''):
         ret = self.client.put_object_from_local_file(
             Bucket=self.cloud['Bucket'],
@@ -40,6 +41,7 @@ class TencentLPic(LPic):
         )
         return bool(ret.get('ETag'))
 
+    @LPic.mute_log
     def list(self, prefix):
         response = self.client.list_objects(
             Bucket=self.cloud['Bucket'],
@@ -54,10 +56,8 @@ class TencentLPic(LPic):
         else:
             return []
 
+    @LPic.mute_log
     def delete(self, key):
-        root = logging.getLogger()
-        pre_level = root.getEffectiveLevel()
-        root.setLevel(logging.WARNING)
         ret = self.client.delete_objects(
             Bucket=self.cloud['Bucket'],
             Delete={
@@ -65,7 +65,6 @@ class TencentLPic(LPic):
                 'Quiet': 'false'
             }
         )
-        root.setLevel(pre_level)
         return 'Deleted' in ret and len(ret['Deleted']) == 1
 
     def close(self):

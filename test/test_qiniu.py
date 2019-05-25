@@ -10,8 +10,8 @@ from qiniu_ import QiniuLPic
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
 class QiniuLPicTestCase(unittest.TestCase):
     def setUp(self):
-        self.lpic = QiniuLPic('lpic.yml')
-        self.lpic.load_config(use='qiniu')
+        self.lpic = QiniuLPic('lpic.yml', use='qiniu')
+        self.lpic.load_config()
         self.lpic.auth()
         self.tmp = 'tmp{}.jpg'
         for i in range(2):

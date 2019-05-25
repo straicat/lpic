@@ -4,12 +4,12 @@ import os
 
 from qiniu import Auth, put_file, BucketManager
 
-from base import LPic
+from lpic import LPic
 
 
 class QiniuLPic(LPic):
-    def __init__(self, conf=None):
-        super().__init__(conf)
+    def __init__(self, conf=None, **option):
+        super(QiniuLPic, self).__init__(conf, **option)
         self.cloud_name = '七牛云'
 
     def auth(self):
