@@ -45,7 +45,6 @@ class TencentLPic(LPic):
             Prefix=prefix,
             MaxKeys=self.MAX_KEYS
         )
-        print(response)
         if 'Contents' in response:
             def cmp(x):
                 return -datetime.strptime(x['LastModified'], '%Y-%m-%dT%H:%M:%S.000Z').timestamp()
