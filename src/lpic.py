@@ -61,7 +61,8 @@ class LPic:
 
     def load_config(self):
         try:
-            self._conf = self.open_yaml(self.LPIC_EXAMPLE)
+            # 只加载默认的'conf'项
+            self._conf['conf'] = self.open_yaml(self.LPIC_EXAMPLE)['conf']
         except FileNotFoundError:
             pass
         try:
@@ -112,12 +113,12 @@ class LPic:
         try:
             self.close()
         except Exception:
-            logger.error(traceback.format_exc())
+            logger.debug(traceback.format_exc())
         try:
             if hasattr(self, '_tmp_dir') and self._tmp_dir:
                 self._tmp_dir.cleanup()
         except Exception:
-            logger.error(traceback.format_exc())
+            logger.debug(traceback.format_exc())
 
     def preprocess_resize(self, img):
         """调整图片大小"""
@@ -334,13 +335,15 @@ class LPic:
         else:
             logger.error('当前目录没有图片文件')
 
+    def clouds(self):
+        return [c for c in self._conf if c != 'use' and c != 'conf']
+
     def handle_use(self, dest):
-        clouds = sorted([c for c in self._conf if c != 'use' and c != 'conf'])
         if dest is None:
-            for c in clouds:
+            for c in self.clouds():
                 logger.info('{} {}'.format('->' if c == self.use else '  ', c))
         else:
-            if dest in clouds:
+            if dest in self.clouds():
                 for ec in self.ENCODINGS:
                     try:
                         with open(self.conf_file, 'r', encoding=ec) as fp:

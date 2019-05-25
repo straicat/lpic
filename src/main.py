@@ -50,7 +50,7 @@ def _main():
             for p in os.listdir(os.path.abspath(os.path.dirname(__file__))):
                 basepart, ext = os.path.splitext(os.path.basename(p))
                 use = basepart.rstrip('_')
-                if ext.startswith('.py') and (args.use_all or (args.use or lp.use) == use):
+                if ext.startswith('.py') and ((args.use_all and use in lp.clouds()) or (args.use or lp.use) == use):
                     module = importlib.import_module(basepart)
                     for cls in inspect.getmembers(module, inspect.isclass):
                         if cls[1] != LPic:
