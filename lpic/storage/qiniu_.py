@@ -4,7 +4,9 @@ import os
 
 from qiniu import Auth, put_file, BucketManager
 
-from lpic import LPic
+from lpic.base import LPic
+
+USE = "qiniu"
 
 
 class QiniuLPic(LPic):

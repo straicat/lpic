@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import logging
 import os
 from datetime import datetime
 from urllib.parse import urlencode
@@ -8,7 +7,10 @@ from urllib.parse import urlencode
 # noinspection PyPackageRequirements
 from qcloud_cos import CosConfig, CosS3Client
 
-from lpic import LPic
+from lpic.base import LPic
+from lpic.utils import mute_log
+
+USE = "tencent"
 
 
 class TencentLPic(LPic):
@@ -32,7 +34,7 @@ class TencentLPic(LPic):
         }
         return 'https://console.cloud.tencent.com/cos5/bucket/setting?{}'.format(urlencode(params))
 
-    @LPic.mute_log
+    @mute_log
     def upload(self, file, prefix=''):
         ret = self.client.put_object_from_local_file(
             Bucket=self.cloud['Bucket'],
@@ -41,7 +43,7 @@ class TencentLPic(LPic):
         )
         return bool(ret.get('ETag'))
 
-    @LPic.mute_log
+    @mute_log
     def list(self, prefix):
         response = self.client.list_objects(
             Bucket=self.cloud['Bucket'],
@@ -56,7 +58,7 @@ class TencentLPic(LPic):
         else:
             return []
 
-    @LPic.mute_log
+    @mute_log
     def delete(self, key):
         ret = self.client.delete_objects(
             Bucket=self.cloud['Bucket'],

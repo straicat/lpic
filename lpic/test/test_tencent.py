@@ -4,13 +4,13 @@ from time import sleep
 
 from PIL import Image
 
-from aliyun import AliyunLPic
+from lpic.storage.tencent import TencentLPic
 
 
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
-class AliyunLPicTestCase(unittest.TestCase):
+class TencentLPicTestCase(unittest.TestCase):
     def setUp(self):
-        self.lpic = AliyunLPic('lpic.yml', use='aliyun')
+        self.lpic = TencentLPic('lpic.yml', use='tencent')
         self.lpic.load_config()
         self.lpic.auth()
         self.tmp = 'tmp{}.jpg'
@@ -23,9 +23,6 @@ class AliyunLPicTestCase(unittest.TestCase):
         self.lpic.exit()
         for i in range(2):
             os.remove(self.tmp.format(i))
-
-    def test_playground(self):
-        pass
 
     def test(self):
         t = 'tmp'

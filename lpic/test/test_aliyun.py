@@ -4,13 +4,13 @@ from time import sleep
 
 from PIL import Image
 
-from tencent import TencentLPic
+from lpic.storage.aliyun import AliyunLPic
 
 
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
-class TencentLPicTestCase(unittest.TestCase):
+class AliyunLPicTestCase(unittest.TestCase):
     def setUp(self):
-        self.lpic = TencentLPic('lpic.yml', use='tencent')
+        self.lpic = AliyunLPic('lpic.yml', use='aliyun')
         self.lpic.load_config()
         self.lpic.auth()
         self.tmp = 'tmp{}.jpg'
@@ -24,22 +24,19 @@ class TencentLPicTestCase(unittest.TestCase):
         for i in range(2):
             os.remove(self.tmp.format(i))
 
-    def test_playground(self):
-        pass
-
     def test(self):
         t = 'tmp'
-        ret = self.lpic.list(t)
+        ret = self.lpic.find(t)
         self.assertListEqual([], ret)
 
         ret = self.lpic.upload(self.tmp.format(0))
         self.assertEqual(True, ret)
-        ret = self.lpic.list(t)
+        ret = self.lpic.find(t)
         self.assertListEqual([self.tmp.format(0)], ret)
         sleep(1)
         ret = self.lpic.upload(self.tmp.format(1))
         self.assertEqual(True, ret)
-        ret = self.lpic.list(t)
+        ret = self.lpic.find(t)
         self.assertListEqual([self.tmp.format(1), self.tmp.format(0)], ret)
 
         ret = self.lpic.delete(self.tmp.format(0))

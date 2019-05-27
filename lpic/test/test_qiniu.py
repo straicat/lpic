@@ -4,7 +4,7 @@ from time import sleep
 
 from PIL import Image
 
-from qiniu_ import QiniuLPic
+from lpic.storage.qiniu_ import QiniuLPic
 
 
 @unittest.skipUnless(os.path.isfile('lpic.yml'), '没有lpic.yml')
@@ -27,9 +27,6 @@ class QiniuLPicTestCase(unittest.TestCase):
         cache = '.qiniu_pythonsdk_hostscache.json'
         if os.path.isfile(cache):
             os.remove(cache)
-
-    def test_playground(self):
-        pass
 
     def test(self):
         t = 'tmp'

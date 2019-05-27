@@ -9,13 +9,13 @@ import traceback
 import uuid
 import webbrowser
 from datetime import datetime
-from functools import wraps
 from urllib.parse import quote, urlparse
 
 import pyperclip
 import yaml
 from PIL import Image
 
+from .interface import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -27,69 +27,26 @@ class LPic:
     MAX_KEYS = 100
     ENCODINGS = ('utf-8', 'gb18030', 'gb2312', 'gbk', 'utf_8_sig')
 
-    def __init__(self, conf=None, **option):
-        self.cloud_name = '云'
+    def __init__(self, conf, storage=None, option=None):
+        self._conf = conf
+        self.storage = storage  # type: Storage
         self.client = None
 
-        self.conf_file = conf or self.LPIC_YML
-        self._conf = {}
         self.conf = {}
-        self.use = None
         self.cloud = {}
-        self._tmp_dir = None
         self.tmp_dir = None
         self.option = option
 
-    def auth(self):
-        pass
-
     @property
-    def web_url(self):
-        raise NotImplementedError
-
-    def upload(self, file, prefix=''):
-        raise NotImplementedError
-
-    def list(self, prefix):
-        raise NotImplementedError
-
-    def delete(self, key):
-        raise NotImplementedError
-
-    def close(self):
-        pass
-
-    def load_config(self):
-        try:
-            # 只加载默认的'conf'项
-            self._conf['conf'] = self.open_yaml(self.LPIC_EXAMPLE)['conf']
-        except FileNotFoundError:
-            pass
-        try:
-            self._conf.update(self.open_yaml(self.conf_file))
-        except FileNotFoundError:
-            logger.error('找不到配置文件：{}'.format(self.conf_file))
-            return False
-
-        self.use = self.option.get('use') or self._conf['use']
-        if self.use not in self._conf:
-            logger.error("不支持使用'{}'".format(self.use))
-            return False
-
-        self.conf = {}
-        if 'conf' in self._conf:
-            self.conf.update(self._conf['conf'])
-        self.conf.update(self._conf[self.use])
-        self.cloud = self._conf[self.use]
-        return True
-
-    def create_temp_dir(self):
-        self.tmp_dir = self.conf.get('TmpDir')
-        if self.tmp_dir:
-            os.makedirs(self.tmp_dir, exist_ok=True)
+    def use(self):
+        use = self.option.get('backend') or self._conf.get('backend')
+        if use not in self._conf:
+            raise ValueError("Invalid backend '{}', please config it first.".format(use))
         else:
-            self._tmp_dir = tempfile.TemporaryDirectory()
-            self.tmp_dir = self._tmp_dir.name
+            return use
+
+    def _create_temp_dir(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
 
     def open_yaml(self, yml):
         data = {}
@@ -111,12 +68,12 @@ class LPic:
     # noinspection PyBroadException
     def exit(self):
         try:
-            self.close()
+            self.storage.close()
         except Exception:
             logger.debug(traceback.format_exc())
         try:
-            if hasattr(self, '_tmp_dir') and self._tmp_dir:
-                self._tmp_dir.cleanup()
+            if hasattr(self, 'tmp_dir') and self.tmp_dir:
+                self.tmp_dir.cleanup()
         except Exception:
             logger.debug(traceback.format_exc())
 
@@ -185,8 +142,8 @@ class LPic:
         img = Image.open(filename)
         suffix = os.path.splitext(os.path.abspath(filename))[1].lower()
         tmp_name = self.generate_picname(filename)
-        self.create_temp_dir()
-        new_file = os.path.abspath(os.path.join(self.tmp_dir, tmp_name))
+        self._create_temp_dir()
+        new_file = os.path.abspath(os.path.join(self.tmp_dir.name, tmp_name))
         compress = False
         if self.conf.get('AutoCompress'):
             if suffix in ['.jpg', '.jpeg', '.png', '.bmp']:
@@ -297,10 +254,10 @@ class LPic:
     def upload_process(self, pic):
         file = self.preprocess(pic, self.option.get('adjust'))
         _, prefix = self.parse_url_prefix()
-        ret = self.upload(file, prefix)
+        ret = self.storage.upload(file, prefix)
         if ret:
             size = round(os.path.getsize(file) / 1024, 1)
-            logger.info('已上传至{}：{}  {}K'.format(self.cloud_name, os.path.basename(file), size))
+            logger.info('已上传至{}：{}  {}K'.format(self.storage.name, os.path.basename(file), size))
             file_key = os.path.basename(file)
             link = self.generate_file_link(pic, file_key)
             if self.conf.get('AutoCopy'):
@@ -335,15 +292,15 @@ class LPic:
         else:
             logger.error('当前目录没有图片文件')
 
-    def clouds(self):
-        return [c for c in self._conf if c != 'use' and c != 'conf']
+    def hosts(self):
+        return [c for c in self._conf if c != 'backend' and c != 'conf']
 
     def handle_use(self, dest):
         if dest is None:
-            for c in self.clouds():
-                logger.info('{} {}'.format('->' if c == self.use else '  ', c))
+            for h in self.hosts():
+                logger.info('{} {}'.format('->' if h == self.use else '  ', h))
         else:
-            if dest in self.clouds():
+            if dest in self.hosts():
                 for ec in self.ENCODINGS:
                     try:
                         with open(self.conf_file, 'r', encoding=ec) as fp:
@@ -351,7 +308,7 @@ class LPic:
                         break
                     except UnicodeDecodeError:
                         pass
-                raw = re.sub(r'^use:\s+\S+', 'use: {}'.format(dest), raw, flags=re.M)
+                raw = re.sub(r'^backend:\s+\S+', 'backend: {}'.format(dest), raw, flags=re.M)
                 with open(self.conf_file, 'w', encoding='utf-8') as fp:
                     fp.write(raw)
             else:
@@ -360,7 +317,7 @@ class LPic:
     def handle_put(self, dest):
         if dest:
             if os.path.isfile(dest):
-                if self.ask_yn('上传 {} 至{}？([y]/n) '.format(dest, self.cloud_name)):
+                if self.ask_yn('上传 {} 至{}？([y]/n) '.format(dest, self.storage.name)):
                     self.upload_process(dest)
             else:
                 logger.error('当前目录没有指定的文件：{}'.format(dest))
@@ -369,37 +326,23 @@ class LPic:
 
     def handle_del(self, dest):
         prefix = dest or ''
-        keys = self.list(prefix)
-        if keys:
-            key = keys[0]
-            if self.ask_yn('从{}删除 {} ?([y]/n) '.format(self.cloud_name, key)):
-                if self.delete(key):
-                    logger.info('已从{}删除：{}'.format(self.cloud_name, key))
+        key = self.storage.find(prefix)
+        if key:
+            if self.ask_yn('从{}删除 {} ?([y]/n) '.format(self.storage.name, key)):
+                if self.storage.delete(key):
+                    logger.info('已从{}删除：{}'.format(self.storage.name, key))
                 else:
-                    logger.error('从{}删除失败：{}'.format(self.cloud_name, key))
+                    logger.error('从{}删除失败：{}'.format(self.storage.name, key))
         else:
-            logger.error("{}的存储库里没有以'{}'开头的文件".format(self.cloud_name, prefix))
+            logger.error("{}的存储库里没有以'{}'开头的文件".format(self.storage.name, prefix))
 
     def handle_web(self, _):
-        if self.web_url:
-            webbrowser.open(self.web_url)
-
-    @staticmethod
-    def mute_log(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            root = logging.getLogger()
-            level = root.getEffectiveLevel()
-            root.setLevel(logging.ERROR)
-            ret = func(*args, **kwargs)
-            root.setLevel(level)
-            return ret
-
-        return wrapper
+        if self.storage.web_url:
+            webbrowser.open(self.storage.web_url)
 
     def main(self, cmd, dest):
-        if self.load_config():
-            self.auth()
+        if self.use is not None:
+            self.storage.auth()
             if cmd is None:
                 self.handle_default(dest)
             else:

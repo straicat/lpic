@@ -14,7 +14,7 @@ Linux下的终端图床神器！
     del <prefix>        删除Bucket中的文件
     web                 打开Bucket内容管理页面
     put <filename>      上传文件
-    use [<cloud>]       切换云服务
+    backend [<cloud>]       切换云服务
 
 省略命令时，上传最新图片。
 ```

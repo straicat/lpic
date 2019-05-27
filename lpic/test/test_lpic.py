@@ -5,7 +5,7 @@ from time import sleep
 
 from PIL import Image
 
-from lpic import LPic
+from lpic.base import LPic
 
 
 class LPicTestCase(unittest.TestCase):
