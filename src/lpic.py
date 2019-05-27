@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import re
+import shutil
 import tempfile
 import traceback
 import uuid
@@ -208,7 +209,7 @@ class LPic:
             img.save(new_file, format='JPEG', optimize=True, progressive=True)
         else:
             new_file += suffix
-            img.save(new_file)
+            shutil.copyfile(filename, new_file)
         img.close()
         return new_file
 
